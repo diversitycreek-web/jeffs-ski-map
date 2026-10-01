@@ -29,8 +29,19 @@
 // -----------------------------------------------------------------------
 (function () {
   try {
-    if (sessionStorage.getItem("jeffsSkiMap.versionChecked")) return;
-    sessionStorage.setItem("jeffsSkiMap.versionChecked", "1");
+    // Only skip THIS specific load if it's the one we just redirected to
+    // ourselves a moment ago (clearing the flag immediately so the next
+    // real reload checks fresh again) — not a permanent "checked once,
+    // ever" flag. That was the bug in the first version of this: a plain
+    // reload (F5) does NOT clear sessionStorage, so after the very first
+    // check in a tab's lifetime, every later reload silently skipped the
+    // check for the rest of the day, no matter how many more deploys
+    // shipped since — Jeff kept reloading the same tab across many
+    // deploys and never saw any of them land until closing/reopening it.
+    if (sessionStorage.getItem("jeffsSkiMap.justRedirected")) {
+      sessionStorage.removeItem("jeffsSkiMap.justRedirected");
+      return;
+    }
     var controller = new AbortController();
     var timeout = setTimeout(function () { controller.abort(); }, 4000);
     fetch(location.pathname, { method: "HEAD", cache: "no-store", signal: controller.signal })
@@ -41,6 +52,7 @@
           var serverTime = new Date(serverLM).getTime();
           var loadedTime = new Date(document.lastModified).getTime();
           if (serverTime - loadedTime > 5000) {
+            sessionStorage.setItem("jeffsSkiMap.justRedirected", "1");
             location.replace(location.pathname + "?v=" + Date.now());
           }
         }
