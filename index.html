@@ -3327,6 +3327,27 @@
       });
     }
 
+    // When Terrain/Satellite load OpenSkiMap's own complete style wholesale
+    // (see TERRAIN_STYLE/SATELLITE_STYLE above), it brings their own
+    // "skiareas"/"spots" layers along too — their own resort-marker dots
+    // and labels, icons for lift stations/halfpipes/etc. We don't want
+    // those: we already have our own pins for every resort, so it's pure
+    // duplicate clutter — and critically, below their embedding-friendly
+    // zoom threshold, OpenSkiMap's server replaces the ski-area name in
+    // that exact layer with "Unauthorized use of OpenSkiMap.org tiles..."
+    // (confirmed directly: removing just these layers makes the message
+    // disappear completely, while the real run/lift line layers — which
+    // we DO want — not only never showed that message but are unaffected
+    // either way). Removing them here, every time this function runs,
+    // keeps that disclaimer off the map without touching the run/lift
+    // rendering Jeff actually asked for.
+    ["lift-station", "halfpipe", "avalanche-check-spot", "crossing", "other-ski-area-icons",
+      "operating-downhill-ski-area-icons", "operating-nordic-ski-area-icons",
+      "operating-downhill-nordic-ski-area-icons-2", "operating-downhill-nordic-ski-area-icons-1",
+      "ski-area-labels"].forEach(function (id) {
+      if (map.getLayer(id)) map.removeLayer(id);
+    });
+
     // Live OpenSkiMap vector tiles for marked ski runs and ski lifts — read
     // straight from their own public tile service
     // (tiles.openskimap.org/openskimap/{z}/{x}/{y}.pbf, documented via
