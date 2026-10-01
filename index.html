@@ -3806,7 +3806,7 @@
       var main = document.createElement("button");
       main.type = "button"; main.style.cssText = "all:unset;display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;";
       main.innerHTML = '<span class="dot" style="background:' + currentProfileColor() + '"></span><span class="resort-main"><span class="resort-name">' + s.name + '</span><span class="resort-loc">' + (s.loc || "") + "</span></span>";
-      main.addEventListener("click", function () { map.flyTo({ center: [s.lng, s.lat], zoom: 12.5, duration: 1200 }); });
+      main.addEventListener("click", function () { map.flyTo({ center: [s.lng, s.lat], zoom: 13.5, duration: 1200 }); });
 
       var actions = document.createElement("span");
       actions.className = "resort-actions";
@@ -3844,7 +3844,7 @@
       var main = document.createElement("button");
       main.type = "button"; main.style.cssText = "all:unset;display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;";
       main.innerHTML = '<span class="dot" style="background:#0d9488"></span><span class="resort-main"><span class="resort-name">' + s.name + '</span><span class="resort-loc">' + (s.loc || "") + "</span></span>";
-      main.addEventListener("click", function () { map.flyTo({ center: [s.lng, s.lat], zoom: 12.5, duration: 1200 }); });
+      main.addEventListener("click", function () { map.flyTo({ center: [s.lng, s.lat], zoom: 13.5, duration: 1200 }); });
 
       var actions = document.createElement("span");
       actions.className = "resort-actions";
@@ -4167,7 +4167,14 @@
 
   function selectResort(r, p, key) {
     setSelected(key);
-    map.flyTo({ center: [r.lng, r.lat], zoom: 12.5, duration: 1200 });
+    // 13.5, not the old 12.5 — OpenSkiMap's own tile server simply has no
+    // run/lift feature data at all below zoom 13 (confirmed directly,
+    // precisely: nothing at 12.9, full data at 13.0), so the old zoom
+    // landed every single resort click just below the point where any
+    // trail line could ever show, regardless of what layers we add. This
+    // was the real reason trails "never showed up" in real use — it had
+    // nothing to do with caching, the watermark, or our layer config.
+    map.flyTo({ center: [r.lng, r.lat], zoom: 13.5, duration: 1200 });
     var color = "var(" + p.colorVar + ")";
     viewingEyebrow.textContent = p.label;
     viewingName.innerHTML = '<span class="dot" style="background:' + color + '"></span>' + r.n;
