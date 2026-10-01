@@ -745,21 +745,19 @@
   // ---------------------------------------------------------------------
   // Map setup
   // ---------------------------------------------------------------------
-  var TERRAIN_STYLE = "https://tiles.openfreemap.org/styles/liberty";
+  // Terrain/Satellite load OpenSkiMap's own complete, published styles
+  // wholesale (same as their own site uses) instead of a bare basemap with
+  // our own reconstruction of their run/lift layers laid on top — Jeff's
+  // own framing of what he wanted: "lay my view on top of their view" so
+  // there's no risk of subtly misreplicating their rendering (an earlier
+  // version of this tried hand-copying their 29 run/lift layers onto our
+  // own bare Esri/OpenFreeMap basemaps and had a real zoom-13 cutoff bug
+  // from guessing at their tile behavior). Our own pins/skied-tracking/
+  // trip-planner layers still get added on top exactly as before via
+  // tryAddDataLayers(), same as with every other basemap.
+  var TERRAIN_STYLE = "https://tiles.openskimap.org/styles/terrain_v2.json";
   var GLYPHS = "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf";
-  var SATELLITE_STYLE = {
-    version: 8,
-    glyphs: GLYPHS,
-    sources: {
-      esri: {
-        type: "raster",
-        tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
-        tileSize: 256,
-        attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics"
-      }
-    },
-    layers: [{ id: "esri", type: "raster", source: "esri" }]
-  };
+  var SATELLITE_STYLE = "https://tiles.openskimap.org/styles/satellite_v2.json";
   var HYBRID_STYLE = {
     version: 8,
     glyphs: GLYPHS,
