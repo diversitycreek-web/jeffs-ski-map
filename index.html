@@ -5,6 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Jeff's Ski Map</title>
 <script>
+// Guest mode, for links shared with friends: the page never reads or writes the
+// cloud-synced Skied / Want-to-Ski lists, so a visitor cannot see or overwrite Jeff's.
+// Open the page with ?guest to switch it on (remembered in that browser);
+// ?guest=0 switches it off again.
+var SKIMAP_GUEST = false;
+try {
+  var _guestParam = new URLSearchParams(location.search).get("guest");
+  if (_guestParam === "0") { localStorage.removeItem("skimap_guest"); }
+  else if (_guestParam !== null) { localStorage.setItem("skimap_guest", "1"); SKIMAP_GUEST = true; }
+  else if (localStorage.getItem("skimap_guest") === "1") { SKIMAP_GUEST = true; }
+} catch (e) {
+  SKIMAP_GUEST = /[?&]guest(=|&|$)(?!0)/.test(location.search);
+}
+</script>
+<script>
 // -----------------------------------------------------------------------
 // Auto cache-bust — this page is ~22MB and GitHub Pages caches it for 10
 // minutes (cache-control: max-age=600), which is long enough that a real
@@ -53,7 +68,7 @@
           var loadedTime = new Date(document.lastModified).getTime();
           if (serverTime - loadedTime > 5000) {
             sessionStorage.setItem("jeffsSkiMap.justRedirected", "1");
-            location.replace(location.pathname + "?v=" + Date.now());
+            location.replace(location.pathname + "?v=" + Date.now() + (SKIMAP_GUEST ? "&guest=1" : ""));
           }
         }
       })
@@ -1743,7 +1758,7 @@
   var firebaseConfig = {"apiKey":"AIzaSyAkakRu9V-NAuQg8xBs4lNB7JM9S3qYUEw","authDomain":"jeffs-ski-map.firebaseapp.com","databaseURL":"https://jeffs-ski-map-default-rtdb.firebaseio.com","projectId":"jeffs-ski-map","storageBucket":"jeffs-ski-map.firebasestorage.app","messagingSenderId":"946394869010","appId":"1:946394869010:web:34b0c75b40c06e60d157cb"};
   var fbDb = null;
   try {
-    if (firebaseConfig && firebaseConfig.apiKey && typeof firebase !== "undefined") {
+    if (firebaseConfig && firebaseConfig.apiKey && typeof firebase !== "undefined" && !SKIMAP_GUEST) {
       firebase.initializeApp(firebaseConfig);
       fbDb = firebase.database();
     }
@@ -1800,7 +1815,9 @@
 
   var PROFILES_KEY = "jeffsSkiMap.profiles.v1";
   var PROFILE_COLORS = ["#d9a308", "#2dd4bf", "#f472b6", "#fb923c", "#60a5fa", "#a78bfa", "#4ade80", "#f87171"];
-  var profilesState = { names: ["Jeff"], current: "Jeff", colors: { "Jeff": PROFILE_COLORS[0] } };
+  var profilesState = SKIMAP_GUEST
+    ? { names: ["Guest"], current: "Guest", colors: { "Guest": PROFILE_COLORS[0] } }
+    : { names: ["Jeff"], current: "Jeff", colors: { "Jeff": PROFILE_COLORS[0] } };
   try {
     var storedProfiles = JSON.parse(localStorage.getItem(PROFILES_KEY));
     if (storedProfiles && storedProfiles.names && storedProfiles.names.length) profilesState = storedProfiles;
@@ -1913,6 +1930,13 @@
       syncInfo.innerHTML = "&#9729; Synced to the cloud as \"" + profilesState.current
         + "\" — safe from clearing this browser's data. Use the exact same name on another device to share this list there.";
       menu.appendChild(syncInfo);
+    }
+
+    if (SKIMAP_GUEST) {
+      var guestInfo = document.createElement("div");
+      guestInfo.className = "profile-sync-info";
+      guestInfo.textContent = "Guest view: the places you star are saved on this computer only.";
+      menu.appendChild(guestInfo);
     }
 
     btn.addEventListener("click", function (evt) { evt.stopPropagation(); menu.hidden = !menu.hidden; });
@@ -2305,7 +2329,7 @@
   blueDotsBtn.type = "button"; blueDotsBtn.className = "pass-toggle";
   blueDotsBtn.style.setProperty("--pass-color", "#3b82f6");
   blueDotsBtn.setAttribute("aria-pressed", "true");
-  blueDotsBtn.innerHTML = '<span class="dot"></span>Blue Dots';
+  blueDotsBtn.innerHTML = '<span class="dot"></span>All Ski Areas';
   blueDotsBtn.addEventListener("click", function () {
     blueDotsVisible = !blueDotsVisible;
     blueDotsBtn.setAttribute("aria-pressed", String(blueDotsVisible));
